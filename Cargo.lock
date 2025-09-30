@@ -1198,6 +1198,7 @@ dependencies = [
 [[package]]
 name = "tokenizers"
 version = "0.22.1"
+source = "git+https://github.com/jpossaz/tokenizers?branch=juan.v0.22.1.wam#2a3f704268ba16f5ef19ded60e82c9aaf81dcf46"
 dependencies = [
  "aho-corasick",
  "compact_str",

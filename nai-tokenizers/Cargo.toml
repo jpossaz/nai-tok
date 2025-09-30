@@ -14,7 +14,8 @@ brotli = "8.0"
 insta = "1.41"
 
 [dependencies.tokenizers]
-path = "/home/juan/Projects/tokenizers/tokenizers"
+git = "https://github.com/jpossaz/tokenizers"
+branch = "juan.v0.22.1.wam"
 default-features = false
 optional = true
 

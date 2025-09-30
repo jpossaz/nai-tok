@@ -317,7 +317,7 @@
 
         .token-list-header {
             display: grid;
-            grid-template-columns: 80px 1fr 80px;
+            grid-template-columns: 100px 1fr;
             gap: 10px;
             padding: 10px;
             background: var(--bg-tertiary);
@@ -329,7 +329,7 @@
 
         .token-list-item {
             display: grid;
-            grid-template-columns: 80px 1fr 80px;
+            grid-template-columns: 100px 1fr;
             gap: 10px;
             padding: 10px;
             border-bottom: 1px solid var(--border-color);
@@ -378,7 +378,7 @@
 
             .token-list-header,
             .token-list-item {
-                grid-template-columns: 70px 1fr 70px;
+                grid-template-columns: 80px 1fr;
                 gap: 8px;
                 padding: 8px;
                 font-size: 0.8rem;
@@ -600,7 +600,7 @@
 
                 return `<span class="token" style="background: ${color}" data-index="${idx}">
                     ${displayText}
-                    <span class="tooltip">ID: ${token.id} | Pos: ${token.start}-${token.end}</span>
+                    <span class="tooltip">ID: ${token.id}</span>
                 </span>`;
             }).join('');
         }
@@ -618,7 +618,6 @@
                 <div class="token-list-header">
                     <div>Token ID</div>
                     <div>Text</div>
-                    <div>Position</div>
                 </div>
             `;
 
@@ -634,7 +633,6 @@
                     <div class="token-list-item">
                         <div class="token-id">${token.id}</div>
                         <div class="token-text">${displayText}</div>
-                        <div class="token-range">${token.start}-${token.end}</div>
                     </div>
                 `;
             }).join('');
