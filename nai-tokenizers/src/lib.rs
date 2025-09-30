@@ -270,9 +270,20 @@ pub mod glm45_template {
             }
         }
 
-        pub fn chat(mut self, chat: &Chat, prefill: PrefillType) -> String {
+        pub fn chat(self, chat: &Chat, prefill: PrefillType) -> String {
+            self.chat_with_options(chat, prefill, false)
+        }
+
+        pub fn chat_with_options(
+            mut self,
+            chat: &Chat,
+            prefill: PrefillType,
+            ignore_message_position: bool,
+        ) -> String {
             for (i, message) in chat.messages.iter().enumerate() {
-                let message_position = if i == chat.messages.len() - 1 {
+                let message_position = if ignore_message_position {
+                    MessagePosition::Last
+                } else if i == chat.messages.len() - 1 {
                     if matches!(prefill, PrefillType::None) {
                         MessagePosition::Intermediate
                     } else {

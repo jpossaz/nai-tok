@@ -15,10 +15,11 @@ import (
 func main() {
 	var (
 		wasmPath             = flag.String("wasm", "", "Path to WASM file (required)")
-		mode                 = flag.String("mode", "tokenize", "Mode: 'tokenize' or 'detokenize'")
+		mode                 = flag.String("mode", "tokenize", "Mode: 'tokenize', 'detokenize', or 'chat'")
 		includeSpecialTokens = flag.Bool("special", false, "Include special tokens")
 		jsonOutput           = flag.Bool("json", false, "Output as JSON")
 		benchmark            = flag.Bool("benchmark", false, "Show timing information")
+		chatFile             = flag.String("chat-file", "", "Path to JSON file with chat messages (for chat mode)")
 	)
 
 	flag.Parse()
@@ -29,7 +30,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	if flag.NArg() == 0 {
+	// Input validation depends on mode
+	if *mode != "chat" && flag.NArg() == 0 {
 		fmt.Fprintln(os.Stderr, "Error: input is required")
 		flag.Usage()
 		os.Exit(1)
@@ -122,8 +124,53 @@ func main() {
 			fmt.Println(text)
 		}
 
+	case "chat":
+		var input tokenizer.ChatTemplateInput
+
+		if *chatFile != "" {
+			// Read from file
+			fileData, err := os.ReadFile(*chatFile)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error reading chat file: %v\n", err)
+				os.Exit(1)
+			}
+			if err := json.Unmarshal(fileData, &input); err != nil {
+				fmt.Fprintf(os.Stderr, "Error parsing chat file: %v\n", err)
+				os.Exit(1)
+			}
+		} else if flag.NArg() > 0 {
+			// Read from command line argument
+			jsonStr := strings.Join(flag.Args(), " ")
+			if err := json.Unmarshal([]byte(jsonStr), &input); err != nil {
+				fmt.Fprintf(os.Stderr, "Error parsing chat JSON: %v\n", err)
+				os.Exit(1)
+			}
+		} else {
+			fmt.Fprintln(os.Stderr, "Error: chat mode requires either -chat-file or JSON input as argument")
+			os.Exit(1)
+		}
+
+		startOp := time.Now()
+		result, err := tok.ChatTemplate(input)
+		opDuration := time.Since(startOp)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error applying chat template: %v\n", err)
+			os.Exit(1)
+		}
+
+		if *benchmark {
+			fmt.Fprintf(os.Stderr, "Chat template time: %v\n", opDuration)
+			fmt.Fprintf(os.Stderr, "Total time: %v\n", loadDuration+opDuration)
+		}
+
+		if *jsonOutput {
+			json.NewEncoder(os.Stdout).Encode(result)
+		} else {
+			fmt.Print(result)
+		}
+
 	default:
-		fmt.Fprintf(os.Stderr, "Error: invalid mode '%s'. Must be 'tokenize' or 'detokenize'\n", *mode)
+		fmt.Fprintf(os.Stderr, "Error: invalid mode '%s'. Must be 'tokenize', 'detokenize', or 'chat'\n", *mode)
 		os.Exit(1)
 	}
 }

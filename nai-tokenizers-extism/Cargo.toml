@@ -8,5 +8,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 extism-pdk = "1.4.1"
-nai-tokenizers = { path = "../nai-tokenizers", default-features = false, features = ["glm45_tokenizer", "wasm"] }
+nai-tokenizers = { path = "../nai-tokenizers", default-features = false, features = ["glm45_tokenizer", "glm45_template", "wasm"] }
 serde = {version = "1.0.228", features = ["derive"]}
