@@ -114,17 +114,7 @@ pub mod glm45_template {
         },
     }
 
-    impl Message {
-        fn content(&self) -> &str {
-            match self {
-                Message::System { content } => content,
-                Message::User { content } => content,
-                Message::Assistant { content, .. } => content,
-            }
-        }
-    }
-
-    struct ContextState {
+    pub struct ContextState {
         buffer: String,
         reasoning_enabled: ReasoningEnabled,
         remove_reasoning: RemoveReasoning,
