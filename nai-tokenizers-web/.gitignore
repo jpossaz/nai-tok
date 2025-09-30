@@ -1,0 +1,17 @@
+# Rust
+/target
+Cargo.lock
+
+# WASM build artifacts
+/www/pkg
+*.wasm
+
+# Node
+node_modules/
+package-lock.json
+
+# OS
+.DS_Store
+*.swp
+*.swo
+*~

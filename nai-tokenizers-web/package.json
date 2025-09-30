@@ -1,0 +1,19 @@
+{
+  "name": "nai-tokenizers-web",
+  "version": "0.1.0",
+  "description": "NovelAI GLM-4.5 tokenizer for WebAssembly",
+  "scripts": {
+    "build": "wasm-pack build --target web --out-dir www/pkg",
+    "build:release": "wasm-pack build --target web --release --out-dir www/pkg",
+    "serve": "python3 -m http.server 8080 --directory www",
+    "dev": "npm run build && npm run serve"
+  },
+  "keywords": [
+    "tokenizer",
+    "wasm",
+    "novelai",
+    "glm-4.5"
+  ],
+  "author": "",
+  "license": "MIT"
+}
