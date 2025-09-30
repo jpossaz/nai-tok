@@ -10,7 +10,7 @@ wasm-opt = ["-Oz", "--enable-bulk-memory"]
 crate-type = ["cdylib"]
 
 [dependencies]
-nai-tokenizers = { path = "../nai-tokenizers", default-features = false, features = ["glm45", "wasm"] }
+nai-tokenizers = { path = "../nai-tokenizers", default-features = false, features = ["glm45_tokenizer", "wasm"] }
 wasm-bindgen = "0.2.100"
 console_error_panic_hook = "0.1"
 web-sys = { version = "0.3", features = ["console"] }

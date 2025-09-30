@@ -21,7 +21,8 @@ ureq = "2.10"
 brotli = "8.0"
 
 [features]
-default = ["glm45", "native"]
-glm45 = []
+default = ["glm45_tokenizer", "glm45_template", "native"]
+glm45_tokenizer = []
+glm45_template = []
 native = ["tokenizers"]
 wasm = ["tokenizers", "tokenizers/unstable_wasm"]
