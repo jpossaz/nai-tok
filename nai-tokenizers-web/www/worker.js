@@ -1,4 +1,4 @@
-import init, { tokenize, detokenize, get_tokenizer_info } from '../pkg/nai_tokenizers_web.js';
+import init, { tokenize, detokenize, get_tokenizer_info } from './pkg/nai_tokenizers_web.js';
 
 let initialized = false;
 let initPromise = null;
