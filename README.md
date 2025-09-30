@@ -130,15 +130,6 @@ Example message format:
 
 This eliminates the need for manual string manipulation and ensures consistency across different deployment environments.
 
-## Performance
-
-All implementations share the same core Rust code, providing consistent, high performance:
-
-- **Tokenization**: ~500K tokens/sec (single-threaded)
-- **WASM Overhead**: <10% compared to native
-- **Go Pooled**: Linear scaling with concurrent requests
-- **Bundle Size**: ~2MB (WASM, includes vocabulary)
-
 ## Getting Started
 
 ### Web Demo
