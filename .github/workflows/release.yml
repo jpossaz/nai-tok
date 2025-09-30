@@ -1,0 +1,96 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: wasm32-unknown-unknown
+
+    - name: Cache cargo dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-release-
+
+    - name: Install wasm-pack
+      run: |
+        if ! command -v wasm-pack &> /dev/null; then
+          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        fi
+
+    - name: Install wasm-opt
+      run: |
+        curl -L https://github.com/WebAssembly/binaryen/releases/download/version_119/binaryen-version_119-x86_64-linux.tar.gz -o /tmp/binaryen.tar.gz
+        tar xzf /tmp/binaryen.tar.gz -C /tmp
+        sudo cp /tmp/binaryen-version_119/bin/wasm-opt /usr/local/bin/
+        wasm-opt --version
+
+    - name: Build nai-tokenizers-extism
+      run: |
+        cargo build --release --target wasm32-unknown-unknown -p nai-tokenizers-extism
+        wasm-opt -Oz target/wasm32-unknown-unknown/release/nai_tokenizers_extism.wasm \
+          -o target/wasm32-unknown-unknown/release/nai_tokenizers_extism.wasm
+
+    - name: Build nai-tokenizers-web
+      working-directory: ./nai-tokenizers-web
+      run: |
+        wasm-pack build --target web --release --out-dir www/pkg
+        wasm-opt -Oz www/pkg/nai_tokenizers_web_bg.wasm \
+          -o www/pkg/nai_tokenizers_web_bg.wasm
+
+    - name: Create release archives
+      run: |
+        mkdir -p release
+
+        # Copy extism wasm
+        cp target/wasm32-unknown-unknown/release/nai_tokenizers_extism.wasm \
+          release/nai_tokenizers_extism.wasm
+
+        # Create pkg zip
+        cd nai-tokenizers-web/www
+        zip -r ../../release/nai_tokenizers_web_pkg.zip pkg/
+        cd ../..
+
+        # Show what we built
+        ls -lh release/
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          release/nai_tokenizers_extism.wasm
+          release/nai_tokenizers_web_pkg.zip
+        body: |
+          ## Release Assets
+
+          - `nai_tokenizers_extism.wasm` - Extism plugin (optimized with wasm-opt -Oz)
+          - `nai_tokenizers_web_pkg.zip` - Web WASM package for browser use (optimized with wasm-opt -Oz)
+
+          Both WASM files have been optimized for size using wasm-opt.
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
