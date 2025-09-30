@@ -3,6 +3,9 @@ name = "nai-tokenizers-web"
 version = "0.1.0"
 edition = "2024"
 
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-Oz", "--enable-bulk-memory"]
+
 [lib]
 crate-type = ["cdylib"]
 
@@ -17,6 +20,11 @@ serde-wasm-bindgen = "0.6"
 getrandom = { version = "0.2", features = ["js"] }
 
 [profile.release]
-opt-level = "z"
-lto = true
-codegen-units = 1
+opt-level = "z"           # Optimize for size
+lto = true                # Link-time optimization
+codegen-units = 1         # Better optimization
+strip = true              # Strip symbols
+panic = "abort"           # Smaller panic handler
+
+[profile.release.package."*"]
+opt-level = "z"           # Optimize dependencies for size too

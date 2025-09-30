@@ -1,11 +1,27 @@
 #[cfg(feature = "glm45")]
 pub mod glm45_tokenizer {
     use anyhow::Result;
+
+    #[cfg(feature = "native")]
     use tokenizers::Tokenizer;
 
+    #[cfg(feature = "wasm")]
+    use tokenizers_wasm::Tokenizer;
+
     pub fn load() -> Result<Tokenizer> {
-        let data = include_bytes!("../tokenizers/glm-4.5-tokenizer.json");
-        let tokenizer = Tokenizer::from_bytes(data).map_err(|e| anyhow::anyhow!(e.to_string()))?;
+        // Load compressed tokenizer data
+        let compressed_data = include_bytes!("../tokenizers/glm-4.5-tokenizer.json.br");
+
+        // Decompress with Brotli
+        let mut decompressed_data = Vec::new();
+        brotli::BrotliDecompress(
+            &mut &compressed_data[..],
+            &mut decompressed_data
+        ).map_err(|e| anyhow::anyhow!("Failed to decompress tokenizer: {}", e))?;
+
+        // Parse from decompressed bytes
+        let tokenizer = Tokenizer::from_bytes(&decompressed_data)
+            .map_err(|e| anyhow::anyhow!(e.to_string()))?;
         Ok(tokenizer)
     }
 
@@ -13,6 +29,7 @@ pub mod glm45_tokenizer {
         pub static ref GLM45_TOKENIZER: Tokenizer = load().expect("Failed to load GLM-4.5 tokenizer");
     }
 
+    #[derive(Clone, Copy)]
     pub enum SpecialTokens {
         Ignore,
         Keep,

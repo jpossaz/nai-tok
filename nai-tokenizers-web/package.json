@@ -4,7 +4,8 @@
   "description": "NovelAI GLM-4.5 tokenizer for WebAssembly",
   "scripts": {
     "build": "wasm-pack build --target web --out-dir www/pkg",
-    "build:release": "wasm-pack build --target web --release --out-dir www/pkg",
+    "build:release": "wasm-pack build --target web --release --out-dir www/pkg && npm run optimize",
+    "optimize": "wasm-opt -Oz -o www/pkg/nai_tokenizers_web_bg.wasm.opt www/pkg/nai_tokenizers_web_bg.wasm && mv www/pkg/nai_tokenizers_web_bg.wasm.opt www/pkg/nai_tokenizers_web_bg.wasm",
     "serve": "python3 -m http.server 8080 --directory www",
     "dev": "npm run build && npm run serve"
   },
