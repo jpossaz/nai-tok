@@ -1,0 +1,8 @@
+---
+source: nai-tokenizers/tests/glm45_template_tests.rs
+expression: output
+---
+[gMASK]<sop><|system|>
+You are a helpful assistant.<|user|>
+Hello, how are you?/nothink<|assistant|>
+<think></think>

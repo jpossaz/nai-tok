@@ -1,0 +1,10 @@
+---
+source: nai-tokenizers/tests/glm45_template_tests.rs
+expression: output
+---
+[gMASK]<sop><|user|>
+What's the weather like?/nothink<|assistant|>
+<think></think>
+I don't have real-time data.<|user|>
+Make a guess?/nothink<|assistant|>
+<think></think>

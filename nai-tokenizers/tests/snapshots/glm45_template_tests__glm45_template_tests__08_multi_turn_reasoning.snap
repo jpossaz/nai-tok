@@ -1,0 +1,9 @@
+---
+source: nai-tokenizers/tests/glm45_template_tests.rs
+expression: output
+---
+[gMASK]<sop><|user|>
+Is 17 prime?<|assistant|>
+<think>Check divisibility up to sqrt(17) ≈ 4.12. Not divisible by 2, 3. So 17 is prime.</think>
+Yes, 17 is prime.<|user|>
+What about 18?<|assistant|>
