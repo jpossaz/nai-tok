@@ -64,7 +64,7 @@ Browser-ready tokenizer with an interactive demo interface.
 - Browser extensions
 
 **Features:**
-- ~2MB compressed WASM bundle (including vocabulary)
+- Small compressed WASM bundle (including vocabulary)
 - Web Worker support for non-blocking tokenization
 - Interactive demo with token visualization
 - TypeScript-ready API
