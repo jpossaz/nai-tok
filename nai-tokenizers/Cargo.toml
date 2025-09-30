@@ -9,9 +9,12 @@ anyhow = "1.0.100"
 lazy_static = "1.5.0"
 serde = "1.0.228"
 serde_json = "1.0.145"
-tokenizers = { version = "0.22.1", features = ["http"], optional = true }
-tokenizers-wasm = { package = "tokenizers", version = "0.22.1", default-features = false, features = ["unstable_wasm"], optional = true }
 brotli = "8.0"
+
+[dependencies.tokenizers]
+version = "0.22.1"
+default-features = false
+optional = true
 
 [build-dependencies]
 ureq = "2.10"
@@ -21,4 +24,4 @@ brotli = "8.0"
 default = ["glm45", "native"]
 glm45 = []
 native = ["tokenizers"]
-wasm = ["tokenizers-wasm"]
+wasm = ["tokenizers", "tokenizers/unstable_wasm"]

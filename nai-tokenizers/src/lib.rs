@@ -2,11 +2,7 @@
 pub mod glm45_tokenizer {
     use anyhow::Result;
 
-    #[cfg(feature = "native")]
     use tokenizers::Tokenizer;
-
-    #[cfg(feature = "wasm")]
-    use tokenizers_wasm::Tokenizer;
 
     pub fn load() -> Result<Tokenizer> {
         // Load compressed tokenizer data
