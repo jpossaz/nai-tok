@@ -52,10 +52,15 @@ pub mod glm45_tokenizer {
             .map_err(|e| anyhow::anyhow!(e.to_string()))?;
         Ok(decoded)
     }
+
+    pub fn vocab_size() -> usize {
+        GLM45_TOKENIZER.get_vocab_size(true)
+    }
 }
 
 #[cfg(feature = "glm45_template")]
 pub mod glm45_template {
+    use serde::Deserialize;
 
     /// Whether to remove reasoning for the next assistant message.
     pub enum RemoveReasoning {
@@ -69,11 +74,12 @@ pub mod glm45_template {
         Yes,
     }
 
-    pub enum GenerationPrompt {
-        Add,
-        Ignore,
+    pub enum MessagePosition {
+        Intermediate,
+        Last,
     }
 
+    #[derive(Deserialize)]
     pub enum Message {
         System {
             content: String,
@@ -91,6 +97,22 @@ pub mod glm45_template {
         buffer: String,
         reasoning_enabled: ReasoningEnabled,
         remove_reasoning: RemoveReasoning,
+    }
+
+    pub struct Chat {
+        messages: Vec<Message>,
+    }
+
+    pub enum PrefillType {
+        None,
+        Canonical,
+        PartialReasoning {
+            reasoning_content: String,
+        },
+        FullReasoning {
+            reasoning_content: String,
+            content: String,
+        },
     }
 
     impl ContextState {
@@ -143,7 +165,7 @@ pub mod glm45_template {
             self.remove_reasoning = RemoveReasoning::No;
             self
         }
-        pub fn message(mut self, message: &Message) -> Self {
+        pub fn message(mut self, message: &Message, position: &MessagePosition) -> Self {
             match message {
                 Message::Assistant {
                     reasoning_content,
@@ -153,8 +175,12 @@ pub mod glm45_template {
 
                     // Cleaner reasoning logic
                     let should_include_reasoning = matches!(
-                        (&self.remove_reasoning, &self.reasoning_enabled),
-                        (RemoveReasoning::No, ReasoningEnabled::Yes)
+                        (&self.remove_reasoning, &self.reasoning_enabled, position),
+                        (
+                            RemoveReasoning::No,
+                            ReasoningEnabled::Yes,
+                            MessagePosition::Last
+                        )
                     );
 
                     if should_include_reasoning {
@@ -191,23 +217,32 @@ pub mod glm45_template {
         }
 
         // QoL methods for inline message creation
-        pub fn system_message(self, content: impl Into<String>) -> Self {
-            self.message(&Message::System {
-                content: content.into(),
-            })
+        pub fn intermediate_system_message(self, content: impl Into<String>) -> Self {
+            self.message(
+                &Message::System {
+                    content: content.into(),
+                },
+                &MessagePosition::Intermediate,
+            )
         }
 
-        pub fn user_message(self, content: impl Into<String>) -> Self {
-            self.message(&Message::User {
-                content: content.into(),
-            })
+        pub fn intermediate_user_message(self, content: impl Into<String>) -> Self {
+            self.message(
+                &Message::User {
+                    content: content.into(),
+                },
+                &MessagePosition::Intermediate,
+            )
         }
 
-        pub fn assistant_message(self, content: impl Into<String>) -> Self {
-            self.message(&Message::Assistant {
-                content: content.into(),
-                reasoning_content: None,
-            })
+        pub fn intermediate_assistant_message(self, content: impl Into<String>) -> Self {
+            self.message(
+                &Message::Assistant {
+                    content: content.into(),
+                    reasoning_content: None,
+                },
+                &MessagePosition::Intermediate,
+            )
         }
 
         pub fn assistant_with_reasoning(
@@ -215,21 +250,55 @@ pub mod glm45_template {
             reasoning: impl Into<String>,
             content: impl Into<String>,
         ) -> Self {
-            self.message(&Message::Assistant {
-                reasoning_content: Some(reasoning.into()),
-                content: content.into(),
-            })
+            self.message(
+                &Message::Assistant {
+                    reasoning_content: Some(reasoning.into()),
+                    content: content.into(),
+                },
+                &MessagePosition::Intermediate,
+            )
         }
 
-        pub fn assistant_prefill(self) -> Self {
+        pub fn canonical_prefill(self) -> Self {
             if matches!(
                 (&self.reasoning_enabled, &self.remove_reasoning),
                 (ReasoningEnabled::Yes, RemoveReasoning::No)
             ) {
                 self.assistant_sentinel()
             } else {
-                self.assistant_message("")
+                self.intermediate_assistant_message("")
             }
+        }
+
+        pub fn chat(mut self, chat: &Chat, prefill: PrefillType) -> String {
+            for (i, message) in chat.messages.iter().enumerate() {
+                let message_position = if i == chat.messages.len() - 1 {
+                    if matches!(prefill, PrefillType::None) {
+                        MessagePosition::Intermediate
+                    } else {
+                        MessagePosition::Last
+                    }
+                } else {
+                    MessagePosition::Intermediate
+                };
+                self = self.message(message, &message_position);
+            }
+            match prefill {
+                PrefillType::None => self,
+                PrefillType::Canonical => self.canonical_prefill(),
+                PrefillType::PartialReasoning { reasoning_content } => self
+                    .assistant_sentinel()
+                    .think_start()
+                    .text(&reasoning_content),
+                PrefillType::FullReasoning {
+                    reasoning_content,
+                    content,
+                } => self
+                    .assistant_sentinel()
+                    .thinking_content(&reasoning_content)
+                    .text(&content),
+            }
+            .take()
         }
 
         pub fn take(self) -> String {
