@@ -44,3 +44,9 @@ pub fn decode_token(id: u32, include_special_tokens: bool) -> Result<String, JsV
     glm45_tokenizer::detokenize(&[id], special_tokens)
         .map_err(|e| JsValue::from_str(&format!("Detokenization error: {}", e)))
 }
+
+/// Returns the vocabulary size of the tokenizer
+#[wasm_bindgen]
+pub fn vocab_size() -> usize {
+    glm45_tokenizer::vocab_size()
+}

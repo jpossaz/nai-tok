@@ -391,7 +391,7 @@
     <div class="container">
         <header>
             <h1>NovelAI GLM-4.5 Tokenizer</h1>
-            <p class="subtitle">Interactive token visualization and analysis</p>
+            <p class="subtitle" id="subtitle">Interactive token visualization and analysis</p>
             <div class="stats">
                 <div class="stat">
                     <div class="stat-label">Tokens</div>
@@ -654,7 +654,21 @@
             ratio.textContent = '0.00';
         }
 
-        // Initialize with example text
+        // Load vocab size and update subtitle
+        async function loadVocabSize() {
+            try {
+                const info = await worker.getInfo();
+                if (info && info.vocabSize) {
+                    document.getElementById('subtitle').textContent =
+                        `Interactive token visualization and analysis • Loaded vocab with ${info.vocabSize.toLocaleString()} tokens`;
+                }
+            } catch (error) {
+                console.error('Failed to load vocab size:', error);
+            }
+        }
+
+        // Initialize
+        loadVocabSize();
         inputText.value = '[gMASK]Hello! This is a test of the GLM-4.5 tokenizer. Try typing to see tokens in real-time!\n\nSpecial tokens like <|system|>, <|user|>, and <|assistant|> are supported.';
         tokenizeText();
     </script>

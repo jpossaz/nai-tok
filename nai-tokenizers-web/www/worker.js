@@ -1,4 +1,4 @@
-import init, { tokenize, detokenize, decode_token } from './pkg/nai_tokenizers_web.js';
+import init, { tokenize, detokenize, decode_token, vocab_size } from './pkg/nai_tokenizers_web.js';
 
 let initialized = false;
 let initPromise = null;
@@ -55,6 +55,16 @@ self.onmessage = async function(e) {
                 self.postMessage({
                     type: 'detokenize_result',
                     data: { text: result },
+                    id
+                });
+                break;
+            }
+
+            case 'get_info': {
+                const vocabSize = vocab_size();
+                self.postMessage({
+                    type: 'info_result',
+                    data: { vocabSize },
                     id
                 });
                 break;
