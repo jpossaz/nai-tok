@@ -3,7 +3,6 @@ source: nai-tokenizers/tests/glm45_template_tests.rs
 expression: output
 ---
 [gMASK]<sop><|user|>
-Is 17 prime?<|assistant|>
-<think></think>
-Yes, 17 is prime.<|user|>
-What about 18?<|assistant|>
+What is 144 / 12?<|assistant|>
+<think>144 / 12 = 12</think>
+The answer is

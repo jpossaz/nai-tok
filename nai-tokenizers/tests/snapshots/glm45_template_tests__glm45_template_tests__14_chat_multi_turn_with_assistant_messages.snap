@@ -1,0 +1,11 @@
+---
+source: nai-tokenizers/tests/glm45_template_tests.rs
+expression: output
+---
+[gMASK]<sop><|system|>
+You are a math tutor.<|user|>
+What is 5 * 5?/nothink<|assistant|>
+<think></think>
+5 * 5 = 25<|user|>
+What about 6 * 6?/nothink<|assistant|>
+<think></think>

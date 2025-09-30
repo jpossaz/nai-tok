@@ -100,7 +100,7 @@ pub mod glm45_template {
     }
 
     pub struct Chat {
-        messages: Vec<Message>,
+        pub messages: Vec<Message>,
     }
 
     pub enum PrefillType {
