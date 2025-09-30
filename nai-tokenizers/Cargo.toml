@@ -11,6 +11,9 @@ serde = "1.0.228"
 serde_json = "1.0.145"
 brotli = "8.0"
 
+[dev-dependencies]
+insta = "1.41"
+
 [dependencies.tokenizers]
 version = "0.22.1"
 default-features = false
@@ -24,5 +27,5 @@ brotli = "8.0"
 default = ["glm45_tokenizer", "glm45_template", "native"]
 glm45_tokenizer = []
 glm45_template = []
-native = ["tokenizers"]
+native = ["tokenizers", "tokenizers/onig"]
 wasm = ["tokenizers", "tokenizers/unstable_wasm"]

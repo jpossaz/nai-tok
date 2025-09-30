@@ -1,0 +1,15 @@
+---
+source: nai-tokenizers/src/lib.rs
+expression: output
+---
+[gMASK]<sop><|system|>
+You are an expert programmer.<|user|>
+How do I read a file in Python?/nothink<|assistant|>
+<think></think>
+Use `open()` with a context manager:
+```python
+with open('file.txt', 'r') as f:
+    content = f.read()
+```<|user|>
+What about writing?/nothink<|assistant|>
+<think></think>

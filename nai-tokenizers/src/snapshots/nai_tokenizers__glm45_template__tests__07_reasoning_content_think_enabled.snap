@@ -1,0 +1,9 @@
+---
+source: nai-tokenizers/src/lib.rs
+expression: output
+---
+[gMASK]<sop><|system|>
+You are a helpful math tutor.<|user|>
+What is 15 * 24?<|assistant|>
+<think>15 * 24 = 15 * (20 + 4) = 300 + 60 = 360</think>
+The answer is 360.

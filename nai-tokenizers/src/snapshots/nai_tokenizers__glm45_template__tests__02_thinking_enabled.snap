@@ -1,0 +1,7 @@
+---
+source: nai-tokenizers/src/lib.rs
+expression: output
+---
+[gMASK]<sop><|system|>
+You are a helpful AI assistant.<|user|>
+Solve this: 2 + 2<|assistant|>
