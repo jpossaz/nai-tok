@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
 members = [
-    "nai-tokenizers",
+    "nai-tokenizers", "nai-tokenizers-extism",
     "nai-tokenizers-web",
 ]

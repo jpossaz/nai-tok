@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-ahash = "0.8.12"
 anyhow = "1.0.100"
 lazy_static = "1.5.0"
 serde = "1.0.228"
@@ -15,7 +14,7 @@ brotli = "8.0"
 insta = "1.41"
 
 [dependencies.tokenizers]
-version = "0.22.1"
+path = "/home/juan/Projects/tokenizers/tokenizers"
 default-features = false
 optional = true
 
@@ -24,8 +23,8 @@ ureq = "2.10"
 brotli = "8.0"
 
 [features]
-default = ["glm45_tokenizer", "glm45_template", "native"]
+default = ["glm45_tokenizer", "glm45_template"]
 glm45_tokenizer = []
 glm45_template = []
 native = ["tokenizers", "tokenizers/onig"]
-wasm = ["tokenizers", "tokenizers/unstable_wasm"]
+wasm = ["tokenizers/unstable_wasm"]

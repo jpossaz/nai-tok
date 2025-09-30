@@ -1,0 +1,12 @@
+[package]
+name = "nai-tokenizers-extism"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+extism-pdk = "1.4.1"
+nai-tokenizers = { path = "../nai-tokenizers", default-features = false, features = ["glm45_tokenizer", "wasm"] }
+serde = {version = "1.0.228", features = ["derive"]}
