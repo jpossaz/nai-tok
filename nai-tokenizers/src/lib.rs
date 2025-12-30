@@ -79,6 +79,13 @@ pub mod glm45_template {
         Last,
     }
 
+    /// GLM 4.7 uses "</think>" instead of "<think></think>" when a reasoning is empty.
+    /// It also doesn't use /nothink
+    pub enum Version {
+        GLM456,
+        GLM57,
+    }
+
     #[derive(Deserialize)]
     pub enum Message {
         System {
@@ -97,6 +104,7 @@ pub mod glm45_template {
         buffer: String,
         reasoning_enabled: ReasoningEnabled,
         remove_reasoning: RemoveReasoning,
+        version: Version,
     }
 
     pub struct Chat {
@@ -121,6 +129,15 @@ pub mod glm45_template {
                 buffer: "[gMASK]<sop>".to_string(),
                 reasoning_enabled: reasoning_enabled,
                 remove_reasoning: RemoveReasoning::No,
+                version: Version::GLM456,
+            }
+        }
+        pub fn new_with_version(reasoning_enabled: ReasoningEnabled, version: Version) -> Self {
+            Self {
+                buffer: "[gMASK]<sop>".to_string(),
+                reasoning_enabled: reasoning_enabled,
+                remove_reasoning: RemoveReasoning::No,
+                version,
             }
         }
         pub fn system_sentinel(mut self) -> Self {
@@ -136,6 +153,9 @@ pub mod glm45_template {
             self
         }
         pub fn nothink_sentinel(mut self) -> Self {
+            if matches!(self.version, Version::GLM57) {
+                return self;
+            }
             self.buffer.push_str("/nothink");
             self
         }
@@ -152,6 +172,10 @@ pub mod glm45_template {
             self
         }
         pub fn thinking_content(mut self, content: &str) -> Self {
+            if matches!(self.version, Version::GLM57) && content.is_empty() {
+                self = self.think_end();
+                return self;
+            }
             self = self.think_start();
             self = self.text(content);
             self = self.think_end();
@@ -203,7 +227,6 @@ pub mod glm45_template {
                     } else if matches!(self.remove_reasoning, RemoveReasoning::Yes)
                         || matches!(self.reasoning_enabled, ReasoningEnabled::No)
                     {
-                        self = self.nothink_sentinel();
                         self = self.remove_reasoning();
                     }
                 }
