@@ -83,7 +83,7 @@ pub mod glm45_template {
     /// It also doesn't use /nothink
     pub enum Version {
         GLM456,
-        GLM57,
+        GLM47,
     }
 
     #[derive(Deserialize)]
