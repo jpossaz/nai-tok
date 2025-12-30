@@ -153,7 +153,7 @@ pub mod glm45_template {
             self
         }
         pub fn nothink_sentinel(mut self) -> Self {
-            if matches!(self.version, Version::GLM57) {
+            if matches!(self.version, Version::GLM47) {
                 return self;
             }
             self.buffer.push_str("/nothink");
@@ -172,7 +172,7 @@ pub mod glm45_template {
             self
         }
         pub fn thinking_content(mut self, content: &str) -> Self {
-            if matches!(self.version, Version::GLM57) && content.is_empty() {
+            if matches!(self.version, Version::GLM47) && content.is_empty() {
                 self = self.think_end();
                 return self;
             }
