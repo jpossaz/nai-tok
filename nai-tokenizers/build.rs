@@ -22,6 +22,15 @@ fn main() {
         &format!("{}/glm-4.5-tokenizer-config.json.br", tokenizers_dir),
     );
 
+    // Download and compress the GLM-5.2 tokenizer. GLM-5.2 ships a distinct
+    // tokenizer (different vocab from 4.5), so it must be embedded separately
+    // rather than reusing the 4.5 one.
+    download_and_compress(
+        "https://huggingface.co/zai-org/GLM-5.2/resolve/main/tokenizer.json",
+        &format!("{}/glm-5.2-tokenizer.json", tokenizers_dir),
+        &format!("{}/glm-5.2-tokenizer.json.br", tokenizers_dir),
+    );
+
     println!("cargo:rerun-if-changed=build.rs");
 }
 

@@ -58,6 +58,66 @@ pub mod glm45_tokenizer {
     }
 }
 
+#[cfg(feature = "glm52_tokenizer")]
+pub mod glm52_tokenizer {
+    use anyhow::Result;
+
+    use tokenizers::Tokenizer;
+
+    pub fn load() -> Result<Tokenizer> {
+        // Load compressed tokenizer data
+        let compressed_data = include_bytes!("../tokenizers/glm-5.2-tokenizer.json.br");
+
+        // Decompress with Brotli
+        let mut decompressed_data = Vec::new();
+        brotli::BrotliDecompress(&mut &compressed_data[..], &mut decompressed_data)
+            .map_err(|e| anyhow::anyhow!("Failed to decompress tokenizer: {}", e))?;
+
+        // Parse from decompressed bytes
+        let tokenizer = Tokenizer::from_bytes(&decompressed_data)
+            .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+        Ok(tokenizer)
+    }
+
+    lazy_static::lazy_static! {
+        pub static ref GLM52_TOKENIZER: Tokenizer = load().expect("Failed to load GLM-5.2 tokenizer");
+    }
+
+    #[derive(Clone, Copy)]
+    pub enum SpecialTokens {
+        Ignore,
+        Keep,
+    }
+
+    impl From<SpecialTokens> for bool {
+        fn from(val: SpecialTokens) -> bool {
+            match val {
+                SpecialTokens::Ignore => false,
+                SpecialTokens::Keep => true,
+            }
+        }
+    }
+
+    pub fn tokenize(input: &str, special_tokens: SpecialTokens) -> Result<Vec<u32>> {
+        let encoding = GLM52_TOKENIZER
+            .encode(input, special_tokens.into())
+            .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+        Ok(encoding.get_ids().to_vec())
+    }
+
+    pub fn detokenize(ids: &[u32], special_tokens: SpecialTokens) -> Result<String> {
+        let special_tokens: bool = special_tokens.into();
+        let decoded = GLM52_TOKENIZER
+            .decode(ids, !special_tokens)
+            .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+        Ok(decoded)
+    }
+
+    pub fn vocab_size() -> usize {
+        GLM52_TOKENIZER.get_vocab_size(true)
+    }
+}
+
 #[cfg(feature = "glm45_template")]
 pub mod glm45_template {
     use serde::Deserialize;
@@ -81,9 +141,26 @@ pub mod glm45_template {
 
     /// GLM 4.7 uses "</think>" instead of "<think></think>" when a reasoning is empty.
     /// It also doesn't use /nothink
+    ///
+    /// GLM 5.2 drops the trailing newline after every sentinel (`<|user|>`,
+    /// `<|assistant|>`, `</think>`, ...), prepends a `<|system|>Reasoning
+    /// Effort: Max` preamble when reasoning is enabled, and like 4.7 has no
+    /// `/nothink` token (disabled reasoning is expressed as `<think></think>`).
     pub enum Version {
         GLM456,
         GLM47,
+        GLM52,
+    }
+
+    impl Version {
+        /// Separator emitted right after a sentinel token. GLM-5.2 packs tokens
+        /// with no trailing newline; earlier versions use "\n".
+        fn sentinel_sep(&self) -> &'static str {
+            match self {
+                Version::GLM52 => "",
+                _ => "\n",
+            }
+        }
     }
 
     #[derive(Deserialize)]
@@ -133,27 +210,37 @@ pub mod glm45_template {
             }
         }
         pub fn new_with_version(reasoning_enabled: ReasoningEnabled, version: Version) -> Self {
+            let mut buffer = "[gMASK]<sop>".to_string();
+            // GLM-5.2 prepends a reasoning-effort system preamble when thinking
+            // is enabled (the model's chat template defaults this to "Max").
+            if matches!(version, Version::GLM52) && matches!(reasoning_enabled, ReasoningEnabled::Yes)
+            {
+                buffer.push_str("<|system|>Reasoning Effort: Max");
+            }
             Self {
-                buffer: "[gMASK]<sop>".to_string(),
+                buffer,
                 reasoning_enabled: reasoning_enabled,
                 remove_reasoning: RemoveReasoning::No,
                 version,
             }
         }
         pub fn system_sentinel(mut self) -> Self {
-            self.buffer.push_str("<|system|>\n");
+            self.buffer.push_str("<|system|>");
+            self.buffer.push_str(self.version.sentinel_sep());
             self
         }
         pub fn user_sentinel(mut self) -> Self {
-            self.buffer.push_str("<|user|>\n");
+            self.buffer.push_str("<|user|>");
+            self.buffer.push_str(self.version.sentinel_sep());
             self
         }
         pub fn assistant_sentinel(mut self) -> Self {
-            self.buffer.push_str("<|assistant|>\n");
+            self.buffer.push_str("<|assistant|>");
+            self.buffer.push_str(self.version.sentinel_sep());
             self
         }
         pub fn nothink_sentinel(mut self) -> Self {
-            if matches!(self.version, Version::GLM47) {
+            if matches!(self.version, Version::GLM47 | Version::GLM52) {
                 return self;
             }
             self.buffer.push_str("/nothink");
@@ -164,7 +251,8 @@ pub mod glm45_template {
             self
         }
         pub fn think_end(mut self) -> Self {
-            self.buffer.push_str("</think>\n");
+            self.buffer.push_str("</think>");
+            self.buffer.push_str(self.version.sentinel_sep());
             self
         }
         pub fn text(mut self, content: &str) -> Self {
@@ -287,7 +375,14 @@ pub mod glm45_template {
                 (&self.reasoning_enabled, &self.remove_reasoning),
                 (ReasoningEnabled::Yes, RemoveReasoning::No)
             ) {
-                self.assistant_sentinel()
+                // GLM-5.2's generation prompt opens the reasoning block directly
+                // (`<|assistant|><think>`); earlier versions stop at the sentinel
+                // and let the model emit `<think>` itself.
+                if matches!(self.version, Version::GLM52) {
+                    self.assistant_sentinel().think_start()
+                } else {
+                    self.assistant_sentinel()
+                }
             } else {
                 self.intermediate_assistant_message("")
             }

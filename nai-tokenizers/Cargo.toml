@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.100"
 lazy_static = "1.5.0"
-serde = "1.0.228"
+serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 brotli = "8.0"
 
@@ -27,5 +27,8 @@ brotli = "8.0"
 default = ["glm45_tokenizer", "glm45_template", "native"]
 glm45_tokenizer = ["tokenizers"]
 glm45_template = []
+# GLM-5.2 reuses the shared template module (glm45_template, via Version::GLM52),
+# so it only needs its own tokenizer feature for the distinct vocab.
+glm52_tokenizer = ["tokenizers"]
 native = ["tokenizers/onig"]
 wasm = ["tokenizers/unstable_wasm"]
